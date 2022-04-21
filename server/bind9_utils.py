@@ -26,25 +26,33 @@ def create_zone(name):
     
 def bind(zone, domain_name, IP):
     # add forward record
-    with open('db.' + zone,"r") as db_file_old, open('db.' + zone + ".temp","w") as db_new_file:
-        for line in db_file_old:
-            if domain_name + '.' + zone + '.' not in line:
-                db_new_file.write(line)
-            if "NS records" in line:
-                db_new_file.write("\tIN NS %s.\n" % (domain_name + '.' + zone))
-            if "NS mapping" in line:
-                db_new_file.write("%s.\tIN A %s\n" % ((domain_name + '.' + zone), IP))
+    try:
+        with open('db.' + zone,"r") as db_file_old, open('db.' + zone + ".temp","w") as db_new_file:
+            for line in db_file_old:
+                if domain_name + '.' + zone + '.' not in line:
+                    db_new_file.write(line)
+                if "NS records" in line:
+                    db_new_file.write("\tIN NS %s.\n" % (domain_name + '.' + zone))
+                if "NS mapping" in line:
+                    db_new_file.write("%s.\tIN A %s\n" % ((domain_name + '.' + zone), IP))
 
-    sh.move('db.' + zone + ".temp", 'db.' + zone)
+        sh.move('db.' + zone + ".temp", 'db.' + zone)
+        return True
+    except:
+        return False
 
 
 def unbind(zone, domain_name):
-    with open('db.' + zone,"r") as db_file_old, open('db.' + zone + ".temp","w") as db_new_file:
-        for line in db_file_old:
-            if domain_name not in line:
-                db_new_file.write(line)
-     
-    sh.move('db.' + zone + ".temp", 'db.' + zone)
+    try:
+        with open('db.' + zone,"r") as db_file_old, open('db.' + zone + ".temp","w") as db_new_file:
+            for line in db_file_old:
+                if domain_name not in line:
+                    db_new_file.write(line)
+        
+        sh.move('db.' + zone + ".temp", 'db.' + zone)
+        return True
+    except:
+        return False
 
 def remove_zone(name):
     try:

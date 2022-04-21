@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+
 def get_time():
     return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
@@ -13,6 +14,7 @@ def register_user(user_name, zone, subnet):
         new_record['subnet'] = [subnet]
         new_record['ip'] = ['x']
         new_record['date'] = [get_time()]
+        new_record['active'] = [False]
         new_record = pd.DataFrame(new_record)
         table = pd.concat([table, new_record],ignore_index=True)
 
@@ -32,3 +34,5 @@ def update_info(user_name, new_ip):
         table['ip'][idx] = new_ip
         table['date'][idx] = get_time()
         table.to_csv('registered_users.csv',index=False)
+
+
