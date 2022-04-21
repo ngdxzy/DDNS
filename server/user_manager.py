@@ -8,6 +8,7 @@ def register_user(user_name, zone, subnet):
     table = pd.read_csv('registered_users.csv')
     print(table)
     if user_name not in table['username'].to_list():
+        print("Add new user %s!" % user_name)
         new_record = {}
         new_record['username'] = [user_name]
         new_record['zone'] = [zone]
@@ -20,6 +21,8 @@ def register_user(user_name, zone, subnet):
 
         print(table)
         table.to_csv('registered_users.csv',index=False)
+    else:
+        print("The user already exists!")
 
 def remove_user(user_name):
     table = pd.read_csv('registered_users.csv')

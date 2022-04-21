@@ -8,3 +8,5 @@
 
 
 
+
+include "/etc/bind/zones.nextlab";
