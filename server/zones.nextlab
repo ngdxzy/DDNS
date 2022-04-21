@@ -1,9 +1,0 @@
-zone "nextlab" {
-    type master;
-    file "/etc/bind/db.nextlab";
-};
-
-zone "nextlab.in-addr.arpa" {
-    type master;
-    file "/etc/bind/db.nextlab_reverse";
-};

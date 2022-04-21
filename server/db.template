@@ -10,8 +10,5 @@ $TTL	604800
 			 604800 )	; Negative Cache TTL
 ;
 ; NS records
-    IN NS p330.nextlab.
-    IN NS dell-precision.nextlab.
     
-p330.nextlab. IN A 131.128.54.47
-dell-precision.nextlab. IN A 131.128.54.108
+; NS mapping
