@@ -1,3 +1,4 @@
+#!/tools/miniconda3/bin/python3
 import os
 import shutil as sh
 import socket as ss
@@ -24,7 +25,7 @@ if __name__ == "__main__":
             table.loc[index, 'active'] = False
             bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
             print(row['username'] + " dead!")
-    
+
     table.to_csv('registered_users.csv', index=False)
     print("Init. done!")
     ddns_server_service = th.Thread(target=udp_server, args=(60000, msg_q_udp, ))
@@ -37,10 +38,10 @@ if __name__ == "__main__":
         RUN_FLAG = cmd_tool.run()
     msg_q_tcp.put("exit")
     msg_q_udp.put("exit")
+    ddns_server_service.join()
+    ddns_check_service.join()
     table = pd.read_csv('registered_users.csv')
     for index, row in table.iterrows():
         table.loc[index, 'active'] = False
         bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
     table.to_csv('registered_users.csv', index=False)
-    ddns_server_service.join()
-    ddns_check_service.join()

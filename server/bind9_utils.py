@@ -4,15 +4,15 @@ import shutil as sh
 import os
 
 def apply_ddns():
-    sh.copy('db.*', '/etc/bind/')
-    sh.copy('zones.*', '/etc/bind/')
-    sh.copy('named.conf.local', '/etc/bind/')
+    os.system('cp db.* /etc/bind/')
+    os.system('cp zones.* /etc/bind/')
+    os.system('cp named.conf.local /etc/bind/')
     os.system("service bind9 restart")
 
 def create_zone(name):
     if os.path.exists('./zones.' + name):
         return
-        
+
     with open("./templates/zones.template","r") as template_file, open("./zones." + name, "w") as new_zone_file:
         for line in template_file:
             new_zone_file.write(line.replace('TOREPLACE',name))
@@ -24,15 +24,15 @@ def create_zone(name):
         for line in cfg_old:
             if line != '':
                 cfg_new.write(line)
-            if '.' + name + '\"' in line:
+            elif '.' + name + '\"' in line:
                 flag = True
         if not flag:
             cfg_new.write('\ninclude \"/etc/bind/zones.%s\";' % name)
-    
+
     sh.move("named.conf.local.new", "named.conf.local")
     apply_ddns()
-    
-    
+
+
 def bind(zone, domain_name, IP):
     # add forward record
     try:
@@ -58,7 +58,7 @@ def unbind(zone, domain_name):
             for line in db_file_old:
                 if domain_name not in line:
                     db_new_file.write(line)
-        
+
         sh.move('db.' + zone + ".temp", 'db.' + zone)
         apply_ddns()
         return True
@@ -82,5 +82,6 @@ def remove_zone(name):
                 cfg_new.write(line)
 
     sh.move("named.conf.local.new", "named.conf.local")
-    apply_ddns()
+    os.system('cp named.conf.local /etc/bind/')
+    os.system("service bind9 restart")
     # sh.move("named.conf.local", "/etc/bind/named.conf.local")
