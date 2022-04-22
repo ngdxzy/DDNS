@@ -11,6 +11,7 @@ import ddns_utils
 import user_manager
 import net_utils
 import pandas as pd
+import time
 
 def check_alive(IP, port, name):
     HOST = IP
@@ -18,7 +19,7 @@ def check_alive(IP, port, name):
     ADDR = (HOST, PORT)
     BUFSIZE = 1024
     tcpClient = ss.socket(ss.AF_INET, ss.SOCK_STREAM)
-    tcpClient.settimeout(2)
+    tcpClient.settimeout(5)
     try:
         tcpClient.connect(ADDR)
         msg = "Alive?"
@@ -77,6 +78,32 @@ def udp_server(port, msg_q):
                     RUN_FLAG = False
     udpServer.close()
     print("UDP server closed!")
+
+def tcpClient(port, msg_q):
+    RUN_FLAG = True
+    while RUN_FLAG:
+        table = pd.read_csv('registered_users.csv')
+        for index, row in table.iterrows():
+            if check_alive(row['ip'],port, row['username']):
+                if not table.loc[index, 'active']:
+                    print(row['username'] + " just alive!")
+                    bind9_utils.bind(zone=row['zone'], domain_name=row['username'], IP=row['ip'])
+                    table.loc[index, 'active'] = True
+            else:
+                if table.loc[index, 'active']:
+                    table.loc[index, 'active'] = False
+                    bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
+                    print(row['username'] + " just dead!")
+        
+        table.to_csv('registered_users.csv', index=False)
+        for _ in range(30):
+            time.sleep(1)
+            if not msg_q.empty():
+                cmd = msg_q.get()
+                if cmd == "exit":
+                    RUN_FLAG = False
+                    break
+        
 
 class cmd:
     def __init__(self):

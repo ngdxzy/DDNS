@@ -3,26 +3,35 @@ from ast import expr_context
 import shutil as sh
 import os
 
+def apply_ddns():
+    sh.copy('db.*', '/etc/bind/')
+    sh.copy('zones.*', '/etc/bind/')
+    sh.copy('named.conf.local', '/etc/bind/')
+    os.system("service bind9 restart")
+
 def create_zone(name):
     if os.path.exists('./zones.' + name):
         return
         
-    with open("./zones.template","r") as template_file, open("./zones." + name, "w") as new_zone_file:
+    with open("./templates/zones.template","r") as template_file, open("./zones." + name, "w") as new_zone_file:
         for line in template_file:
             new_zone_file.write(line.replace('TOREPLACE',name))
 
-    sh.copy("db.template", "db." + name, )
+    sh.copy("./templates/db.template", "db." + name, )
 
     with open("named.conf.local","r") as cfg_old, open("named.conf.local.new","w") as cfg_new:
         flag = False
         for line in cfg_old:
-            cfg_new.write(line)
+            if line != '':
+                cfg_new.write(line)
             if '.' + name + '\"' in line:
                 flag = True
         if not flag:
             cfg_new.write('\ninclude \"/etc/bind/zones.%s\";' % name)
     
     sh.move("named.conf.local.new", "named.conf.local")
+    apply_ddns()
+    
     
 def bind(zone, domain_name, IP):
     # add forward record
@@ -37,6 +46,7 @@ def bind(zone, domain_name, IP):
                     db_new_file.write("%s.\tIN A %s\n" % ((domain_name + '.' + zone), IP))
 
         sh.move('db.' + zone + ".temp", 'db.' + zone)
+        apply_ddns()
         return True
     except:
         return False
@@ -50,6 +60,7 @@ def unbind(zone, domain_name):
                     db_new_file.write(line)
         
         sh.move('db.' + zone + ".temp", 'db.' + zone)
+        apply_ddns()
         return True
     except:
         return False
@@ -63,12 +74,13 @@ def remove_zone(name):
         os.remove('zones.' + name)
     except:
         pass
-    # os.remove('/etc/bind/db.' + name)
-    # os.remove('/etc/bind/zones.' + name)
+    os.remove('/etc/bind/db.' + name)
+    os.remove('/etc/bind/zones.' + name)
     with open("named.conf.local","r") as cfg_old, open("named.conf.local.new","w") as cfg_new:
         for line in cfg_old:
             if '.' + name + '\"' not in line:
                 cfg_new.write(line)
 
     sh.move("named.conf.local.new", "named.conf.local")
+    apply_ddns()
     # sh.move("named.conf.local", "/etc/bind/named.conf.local")

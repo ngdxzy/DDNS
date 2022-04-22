@@ -30,13 +30,3 @@ def ifInSubnet(subnet,ip):
     ip_subnet = do_netmask(ip_num,netmask)
     ip_cmp = do_netmask(subnet_num[0:4],netmask)
     return ip_subnet[0:4] == ip_cmp[0:4]
-
-def get_valid_ip():
-    addresses = {}
-    for ifaceName in interfaces():
-        addresses[ifaceName] = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':'-1.-1.-1.-1'}] )]
-    #print(addresses)
-    for itf_name, ip in addresses.items():
-        if ifInSubnet(subnet=_SUBNET,ip=ip[0]):
-            print('Valid interface: %s\tIP:%s' % (itf_name,ip[0]))
-            return itf_name, ip[0]
