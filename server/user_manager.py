@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+import bind9_utils
 
 def get_time():
     return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
@@ -19,6 +20,9 @@ def register_user(user_name, zone, subnet):
         new_record = pd.DataFrame(new_record)
         table = pd.concat([table, new_record],ignore_index=True)
 
+        if zone not in table['zone'].to_list():
+            bind9_utils.create_zone(zone)
+
         print(table)
         table.to_csv('registered_users.csv',index=False)
     else:
@@ -27,6 +31,7 @@ def register_user(user_name, zone, subnet):
 def remove_user(user_name):
     table = pd.read_csv('registered_users.csv')
     if user_name in table['username'].to_list():
+        bind9_utils.unbind(table['zone'].to_list().index(user_name),table['username'].to_list().index(user_name))
         table.drop(table['username'].to_list().index(user_name), inplace=True)
         table.to_csv('registered_users.csv',index=False)
 
