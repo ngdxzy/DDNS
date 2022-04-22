@@ -58,7 +58,7 @@ def udp_server(port, msg_q):
             table = pd.read_csv('registered_users.csv')
             if msg[0] in table['username'].to_list(): # registered user?
                 idx = table['username'].to_list().index(msg[0])
-                if table['ip'][idx] != msg[1]: # ip changed?
+                if table['ip'][idx] != msg[1] or table['active'][idx] == False: # ip changed or was inactive?
                     if net_utils.ifInSubnet(subnet=table['subnet'][idx], ip=msg[1]): # if the ip is valid
                         bind9_utils.bind(zone=table['zone'][idx], domain_name=table['username'][idx], IP=msg[1])
                         table.loc[idx,'ip'] = msg[1]

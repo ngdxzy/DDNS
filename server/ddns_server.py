@@ -35,15 +35,9 @@ if __name__ == "__main__":
         RUN_FLAG = cmd_tool.run()
     msg_q_udp.put("exit")
     table = pd.read_csv('registered_users.csv')
-    print("Initialize! Check all registered users!")
     for index, row in table.iterrows():
-        if check_alive(row['ip'],60001, row['username']):
-            print(row['username'] + " alive!")
-            bind9_utils.bind(zone=row['zone'], domain_name=row['username'], IP=row['ip'])
-            table.loc[index, 'active'] = True
-        else:
+        if row['active']:
             table.loc[index, 'active'] = False
             bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
-            print(row['username'] + " dead!")
     table.to_csv('registered_users.csv', index=False)
     ddns_server_service.join()
