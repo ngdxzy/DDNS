@@ -28,10 +28,13 @@ def tcp_server(port, name):
         tcpServer.bind(ADDR)
     tcpServer.listen(1)
     while True:
-        tcpConnection, addr = tcpServer.accept()
-        data = tcpConnection.recv(1024)
-        tcpConnection.send(name.encode('utf-8'))
-        tcpConnection.close()
+        try:
+            tcpConnection, addr = tcpServer.accept()
+            data = tcpConnection.recv(1024)
+            tcpConnection.send(name.encode('utf-8'))
+            tcpConnection.close()
+        except:
+            pass
 
 def udp_clinet(name, eth_name, udpClient):
     valid_ip = get_valid_ip(eth_name)
@@ -57,5 +60,5 @@ if __name__ == "__main__":
     udpClient.settimeout(1)
     while True:
         udp_clinet(local_name, eth_name, udpClient)
-        time.sleep(10)
+        time.sleep(60)
 
