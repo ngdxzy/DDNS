@@ -63,7 +63,6 @@ def udp_server(port, msg_q):
                 if row[1]['username'] == msg[0] and row[1]['zone'] == msg[1]:
                     Valid = True
                     idx = row[0]
-                    print("correct!")
                     break
             if Valid: # registered user?
                 if table['ip'][idx] != msg[2] or table['active'][idx] == False: # ip changed or was inactive?
