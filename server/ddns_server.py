@@ -22,8 +22,9 @@ if __name__ == "__main__":
             bind9_utils.bind(zone=row['zone'], domain_name=row['username'], IP=row['ip'])
             table.loc[index, 'active'] = True
         else:
-            table.loc[index, 'active'] = False
-            bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
+            if row['active']:
+                table.loc[index, 'active'] = False
+                bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
             print(row['username'] + " dead!")
 
     table.to_csv('registered_users.csv', index=False)
@@ -42,6 +43,7 @@ if __name__ == "__main__":
     ddns_check_service.join()
     table = pd.read_csv('registered_users.csv')
     for index, row in table.iterrows():
-        table.loc[index, 'active'] = False
-        bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
+        if row['active']:
+            table.loc[index, 'active'] = False
+            bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
     table.to_csv('registered_users.csv', index=False)

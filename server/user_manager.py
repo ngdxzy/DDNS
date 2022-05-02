@@ -6,10 +6,19 @@ def get_time():
 
 def register_user(user_name, zone, subnet):
     table = pd.read_csv('registered_users.csv')
-    if user_name not in table['username'].to_list():
-        if zone not in table['zone'].to_list():
-            print("New Zone!")
-            bind9_utils.create_zone(zone)
+    if zone not in table['zone'].to_list():
+        print("New Zone!")
+        bind9_utils.create_zone(zone)
+        allow_add = True
+    else:
+        allow_add = True
+        for row in table.iterrows():
+            if row[1]['zone'] == zone and row[1]['username'] == user_name:
+                print('User already exists!')
+                allow_add = False
+                break
+
+    if allow_add:
         print("Add new user %s!" % user_name)
         new_record = {}
         new_record['username'] = [user_name]
@@ -22,18 +31,17 @@ def register_user(user_name, zone, subnet):
         table = pd.concat([table, new_record],ignore_index=True)
         print(table)
         table.to_csv('registered_users.csv',index=False)
-    else:
-        print("The user already exists!")
 
-def remove_user(user_name):
+def remove_user(user_name, zone_name):
     table = pd.read_csv('registered_users.csv')
-    if user_name in table['username'].to_list():
-        this_zone = table['zone'][table['username'].to_list().index(user_name)]
-        table.drop(table['username'].to_list().index(user_name), inplace=True)
-        bind9_utils.unbind(this_zone, user_name)
-        if this_zone not in table['zone'].to_list(): # This zone nolonger exists
-            bind9_utils.remove_zone(this_zone)
-        table.to_csv('registered_users.csv',index=False)
+    for idx, row in table.iterrows():
+        if row['username'] == user_name and row['zone'] == zone_name:
+            table.drop(idx, inplace=True)
+            bind9_utils.unbind(zone_name, user_name)
+            if zone_name not in table['zone'].to_list(): # This zone nolonger exists
+                bind9_utils.remove_zone(zone_name)
+            break
+    table.to_csv('registered_users.csv',index=False)
 
 def update_info(user_name, new_ip):
     table = pd.read_csv('registered_users.csv')

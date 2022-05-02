@@ -2,11 +2,13 @@
 from ast import expr_context
 import shutil as sh
 import os
+import time
 
 def apply_ddns():
     os.system('cp db.* /etc/bind/')
     os.system('cp zones.* /etc/bind/')
     os.system('cp named.conf.local /etc/bind/')
+    time.sleep(.01)
     os.system("service bind9 restart")
 
 def create_zone(name):

@@ -1,5 +1,6 @@
 import threading as th
 import socket as ss
+import sys
 import time
 import re
 from netifaces import interfaces, ifaddresses, AF_INET
@@ -36,17 +37,18 @@ def tcp_server(port, name):
         except:
             pass
 
-def udp_clinet(name, eth_name, udpClient):
+def udp_clinet(name, zone_name, eth_name, udpClient, ADDR):
     valid_ip = get_valid_ip(eth_name)
-    msg = name + ' ' + valid_ip
+    msg = name + ' ' + zone_name + ' ' + valid_ip
     try:
         udpClient.sendto(msg.encode('utf-8'), ADDR)
     except:
         pass
 
 if __name__ == "__main__":
-    cfg = open('client.cfg')
+    cfg = open(sys.argv[1])
     local_name = cfg.readline().strip()
+    zone_name = cfg.readline().strip()
     eth_name = cfg.readline().strip()
     server_ip = cfg.readline().strip()
     cfg.close()
@@ -59,6 +61,6 @@ if __name__ == "__main__":
     udpClient = ss.socket(ss.AF_INET, ss.SOCK_DGRAM, 0)
     udpClient.settimeout(1)
     while True:
-        udp_clinet(local_name, eth_name, udpClient)
+        udp_clinet(local_name, zone_name, eth_name, udpClient, ADDR)
         time.sleep(60)
 
