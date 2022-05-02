@@ -19,7 +19,7 @@ def check_alive(IP, port, name):
     ADDR = (HOST, PORT)
     BUFSIZE = 1024
     tcpClient = ss.socket(ss.AF_INET, ss.SOCK_STREAM)
-    tcpClient.settimeout(5)
+    tcpClient.settimeout(10)
     try:
         tcpClient.connect(ADDR)
         msg = "Alive?"
@@ -57,17 +57,25 @@ def udp_server(port, msg_q):
             msg = msg.decode('utf-8')
             msg = msg.split()
             table = pd.read_csv('registered_users.csv')
-            if msg[0] in table['username'].to_list(): # registered user?
-                idx = table['username'].to_list().index(msg[0])
-                if table['ip'][idx] != msg[1] or table['active'][idx] == False: # ip changed or was inactive?
-                    if net_utils.ifInSubnet(subnet=table['subnet'][idx], ip=msg[1]): # if the ip is valid
-                        bind9_utils.bind(zone=table['zone'][idx], domain_name=table['username'][idx], IP=msg[1])
-                        table.loc[idx,'ip'] = msg[1]
+            Valid = False
+            idx = -1
+            for row in table.iterrows():
+                if row[1]['username'] == msg[0] and row[1]['zone'] == msg[1]:
+                    Valid = True
+                    idx = row[0]
+                    print("correct!")
+                    break
+            if Valid: # registered user?
+                if table['ip'][idx] != msg[2] or table['active'][idx] == False: # ip changed or was inactive?
+                    if net_utils.ifInSubnet(subnet=table['subnet'][idx], ip=msg[2]): # if the ip is valid
+                        bind9_utils.bind(zone=table['zone'][idx], domain_name=table['username'][idx], IP=msg[2])
+                        print(msg[0] + 'is now alive! ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+                        table.loc[idx,'ip'] = msg[2]
                         table.loc[idx,'date'] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
                         table.loc[idx,'active'] = True
                     else:
                         bind9_utils.unbind(zone=table['zone'][idx], domain_name=table['username'][idx])
-                        table.loc[idx,'ip'] = msg[1]
+                        table.loc[idx,'ip'] = msg[2]
                         table.loc[idx,'active'] = False
                 table.to_csv('registered_users.csv', index=False)
 
@@ -93,17 +101,17 @@ def tcpClient(port, msg_q):
                 if table.loc[index, 'active']:
                     table.loc[index, 'active'] = False
                     bind9_utils.unbind(zone=row['zone'], domain_name=row['username'])
-                    print(row['username'] + " just dead!")
-        
+                    print(row['username'] + " just dead! " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+
         table.to_csv('registered_users.csv', index=False)
-        for _ in range(30):
+        for _ in range(60):
             time.sleep(1)
             if not msg_q.empty():
                 cmd = msg_q.get()
                 if cmd == "exit":
                     RUN_FLAG = False
                     break
-        
+
 
 class cmd:
     def __init__(self):
@@ -132,24 +140,24 @@ class cmd:
             self.check_status()
         else:
             os.system(msg)
-        
+
         return True
-    
+
     def useradd(self, msg):
         name = msg[1]
         zone = msg[2]
         subnet = msg[3]
         user_manager.register_user(name, zone, subnet)
         bind9_utils.create_zone(msg[2])
-    
+
     def userdel(self, msg):
         name = msg[1]
         user_manager.remove_user(name)
-    
+
     def zonedel(self, msg):
         name = msg[1]
         user_manager.remove_user(name)
-    
+
     def check_status(self):
         table = pd.read_csv('registered_users.csv')
         print(table)

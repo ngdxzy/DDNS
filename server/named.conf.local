@@ -6,3 +6,4 @@
 // organization
 
 include "/etc/bind/zones.nextlab";
+include "/etc/bind/zones.home";
