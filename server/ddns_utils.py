@@ -68,7 +68,7 @@ def udp_server(port, msg_q):
                 if table['ip'][idx] != msg[2] or table['active'][idx] == False: # ip changed or was inactive?
                     if net_utils.ifInSubnet(subnet=table['subnet'][idx], ip=msg[2]): # if the ip is valid
                         bind9_utils.bind(zone=table['zone'][idx], domain_name=table['username'][idx], IP=msg[2])
-                        print(msg[0] + 'is now alive! ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+                        print(msg[0] + ' is now alive! ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
                         table.loc[idx,'ip'] = msg[2]
                         table.loc[idx,'date'] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
                         table.loc[idx,'active'] = True
